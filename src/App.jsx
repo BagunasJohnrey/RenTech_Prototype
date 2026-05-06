@@ -40,8 +40,8 @@ const navItems = {
     { id: 'Dashboard', icon: LayoutGrid, label: 'Dashboard' },
     { id: 'Catalog', icon: ShoppingBag, label: 'Inventory' },
     { id: 'History', icon: Clock, label: 'Transactions' },
-    { id: 'AI Insights', icon: Sparkles, label: 'AI Intelligence', special: true },
     { id: 'Settings', icon: Settings, label: 'System Settings' },
+    { id: 'AI Insights', icon: Sparkles, label: 'AI Intelligence', special: true },
   ],
   Staff: [
     { id: 'Dashboard', icon: LayoutGrid, label: 'Operations' },
@@ -200,7 +200,9 @@ export default function RentechApp() {
             {activeTab === 'History' && (
               <HistoryView role={role} transactions={transactions} onReturn={setReturnTransaction} />
             )}
-            {activeTab === 'AI Insights' && <AIInsightsView />}
+            {activeTab === 'AI Insights' && (
+              <AIInsightsView transactions={transactions} inventory={inventory} />
+            )}
             {(activeTab === 'Profile' || activeTab === 'Settings') && (
               <ProfileSettingsView
                 role={role}

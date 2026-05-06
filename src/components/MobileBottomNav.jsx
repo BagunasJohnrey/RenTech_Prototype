@@ -1,4 +1,4 @@
-import { Plus, Search, Settings } from 'lucide-react';
+import { Plus, Search, Sparkles } from 'lucide-react';
 
 function BottomNavItem({ item, isActive, onClick }) {
   const Icon = item.icon;
@@ -23,7 +23,7 @@ export default function MobileBottomNav({ role, activeTab, setActiveTab, current
   // Determine FAB content and action based on role
   const fabContent =
     role === 'Admin' ? (
-      <Settings size={22} strokeWidth={2.5} />
+      <Sparkles size={22} strokeWidth={2.5} />
     ) : role === 'Customer' ? (
       <Search size={22} strokeWidth={2.5} />
     ) : (
@@ -32,9 +32,9 @@ export default function MobileBottomNav({ role, activeTab, setActiveTab, current
 
   const handleFabClick = () => {
     if (role === 'Admin') {
-      setActiveTab('Settings');          // go to Settings for Admin
+      setActiveTab('AI Insights');        // go to AI Insights for Admin
     } else {
-      onFabClick();                      // Staff → new rental, Customer → catalog
+      onFabClick();                       // Staff → new rental, Customer → catalog
     }
   };
 
