@@ -7,7 +7,7 @@ const MOCK_USERS = {
   customer: { password: 'customer', role: 'Customer' },
 };
 
-export default function Login({ onLogin }) {
+export default function Login({ onLogin, onBack }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -64,21 +64,33 @@ export default function Login({ onLogin }) {
   return (
     <div
       className="min-h-screen flex items-center justify-center bg-[#fcfcfd]"
-      style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}  // explicit font guarantee
+      style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
     >
       <div className="bg-white rounded-3xl shadow-xl p-8 w-full max-w-sm border border-gray-100/80">
+        {/* Back to landing page link */}
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="text-xs text-[#bf4a53] font-semibold mb-4 block hover:underline"
+          >
+            ← Back to Home
+          </button>
+        )}
+
         <div className="flex justify-center mb-6">
-          <div className="w-12 h-12 bg-gradient-to-br from-[#bf4a53] to-red-700 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-sm shadow-red-500/20">
-            RT
-          </div>
+          <img 
+                src="public/RenTech.png" 
+                alt="RENTECH Logo" 
+                className="w-16 h-16 md:w-16 md:h-16"
+              />
         </div>
         <h2 className="text-2xl font-bold text-center text-gray-900 mb-2">
           {isSignup ? 'Create Account' : 'Welcome Back'}
         </h2>
         <p className="text-center text-gray-500 text-sm mb-6">
           {isSignup
-            ? 'Sign up for a RENTECH account'
-            : 'Sign in to your RENTECH account'}
+            ? 'Sign up for a RenTech account'
+            : 'Sign in to your RenTech account'}
         </p>
 
         {/* LOGIN FORM */}

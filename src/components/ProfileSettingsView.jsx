@@ -1,7 +1,15 @@
 import { useState } from 'react';
-import { User, ShieldCheck, Plus, Trash2, Users } from 'lucide-react';
+import { User, ShieldCheck, Plus, Trash2, Users, LogOut } from 'lucide-react';
 
-export default function ProfileSettingsView({ role, staffList, onAddStaff, onRemoveStaff, customerInfo, onUpdateCustomer }) {
+export default function ProfileSettingsView({
+  role,
+  staffList,
+  onAddStaff,
+  onRemoveStaff,
+  customerInfo,
+  onUpdateCustomer,
+  onRequestLogout,
+}) {
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [editCustomer, setEditCustomer] = useState(false);
@@ -45,7 +53,7 @@ export default function ProfileSettingsView({ role, staffList, onAddStaff, onRem
             </span>
           </div>
 
-          {/* Always show fields – for customer they are editable, for others just display */}
+          {/* Editable fields for Customer, static for Admin/Staff */}
           {role === 'Customer' ? (
             editCustomer ? (
               <div className="space-y-3">
@@ -200,6 +208,21 @@ export default function ProfileSettingsView({ role, staffList, onAddStaff, onRem
           )}
         </div>
       )}
+
+      {/* Sign Out Section */}
+      <div className="bg-white rounded-3xl border border-gray-100/80 shadow-sm p-6 md:p-8">
+        <h3 className="font-bold text-gray-900 text-lg mb-2">Account Actions</h3>
+        <p className="text-sm text-gray-500 mb-4">
+          You can sign out of your account and return to the landing page.
+        </p>
+        <button
+          onClick={onRequestLogout}
+          className="flex items-center gap-2 px-4 py-2.5 border border-red-200 bg-red-50 text-[#bf4a53] font-bold text-sm rounded-full hover:bg-red-100 transition-colors"
+        >
+          <LogOut size={16} />
+          Sign Out
+        </button>
+      </div>
     </div>
   );
 }
