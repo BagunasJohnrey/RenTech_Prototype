@@ -1,4 +1,3 @@
-import React from 'react';
 import { ImageIcon, Edit3 } from 'lucide-react';
 
 export default function ItemCard({ item, role, onBook, onEdit }) {
@@ -14,11 +13,7 @@ export default function ItemCard({ item, role, onBook, onEdit }) {
     <div className="bg-white rounded-3xl border border-gray-100/80 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 group flex flex-col">
       <div className="relative aspect-[4/5] bg-gray-50 overflow-hidden">
         {item.image ? (
-          <img
-            src={item.image}
-            alt={item.name}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-          />
+          <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-300">
             <ImageIcon size={32} />
@@ -51,7 +46,7 @@ export default function ItemCard({ item, role, onBook, onEdit }) {
                   : 'bg-gray-100 text-gray-400 cursor-not-allowed'
               }`}
             >
-              {item.status === 'Available' ? 'Check Dates & Book' : 'Unavailable'}
+              {item.status === 'Available' ? 'Rent Now' : 'Unavailable'}
             </button>
           ) : (
             <button

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   LayoutGrid, ShoppingBag, Clock, Sparkles, Settings, User,
-  ClipboardList, Users
+  ClipboardList
 } from 'lucide-react';
 
 import { INITIAL_INVENTORY } from './data/inventory';
@@ -17,8 +17,8 @@ import HistoryView from './components/HistoryView';
 import AIInsightsView from './components/AIInsightsView';
 import ProfileSettingsView from './components/ProfileSettingsView';
 import StaffTasksView from './components/StaffTasksView';
-import NewRentalModal from './components/NewRentalModal';
-import CustomerReservationModal from './components/CustomerReservationModal';
+import StaffNewRental from './components/StaffNewRental';
+import CustomerRentalFlow from './components/CustomerRentalFlow';
 import ProcessReturnModal from './components/ProcessReturnModal';
 import EditItemModal from './components/EditItemModal';
 import AddInventoryItemModal from './components/AddInventoryItemModal';
@@ -40,8 +40,8 @@ const navItems = {
     { id: 'Dashboard', icon: LayoutGrid, label: 'Dashboard' },
     { id: 'Catalog', icon: ShoppingBag, label: 'Inventory' },
     { id: 'History', icon: Clock, label: 'Transactions' },
-    { id: 'Settings', icon: Settings, label: 'System Settings' },
     { id: 'AI Insights', icon: Sparkles, label: 'AI Intelligence', special: true },
+    { id: 'Settings', icon: Settings, label: 'System Settings' },
   ],
   Staff: [
     { id: 'Dashboard', icon: LayoutGrid, label: 'Operations' },
@@ -68,13 +68,13 @@ export default function RentechApp() {
     { username: 'staff', password: 'staff' }
   ]);
 
-  // Modal states
-  const [isNewRentalModalOpen, setIsNewRentalModalOpen] = useState(false);
-  const [reservationItem, setReservationItem] = useState(null);
+  // Modal / page states
+  const [showStaffRental, setShowStaffRental] = useState(false);
   const [returnTransaction, setReturnTransaction] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showAddItemModal, setShowAddItemModal] = useState(false);
+  const [customerRental, setCustomerRental] = useState(null);   // { item, date }
 
   const handleLogin = (userRole) => {
     setRole(userRole);
@@ -91,12 +91,27 @@ export default function RentechApp() {
     }
   };
 
-  const handleProcessRental = (newTx) => {
-    setTransactions([newTx, ...transactions]);
-    setInventory(inventory.map(item => item.name === newTx.item ? { ...item, status: 'Rented' } : item));
-    setIsNewRentalModalOpen(false);
+  // Staff rental handler (multi‑step flow)
+  const handleStaffNewRental = (complexTx) => {
+    const simpleTx = {
+      id: complexTx.id,
+      customer: complexTx.customer,
+      item: complexTx.item,
+      date: complexTx.rentalDate || complexTx.date,
+      status: 'Active',
+      amount: complexTx.balance || complexTx.amount,
+    };
+    setTransactions([simpleTx, ...transactions]);
+    if (complexTx.items && complexTx.items.length > 0) {
+      const rentedItemNames = complexTx.items.map(i => i.name);
+      setInventory(inventory.map(item =>
+        rentedItemNames.includes(item.name) ? { ...item, status: 'Rented' } : item
+      ));
+    }
+    setShowStaffRental(false);
   };
 
+  // Process return
   const handleProcessReturn = (txId) => {
     const tx = transactions.find(t => t.id === txId);
     setTransactions(transactions.map(t => t.id === txId ? { ...t, status: 'Returned' } : t));
@@ -104,10 +119,11 @@ export default function RentechApp() {
     setReturnTransaction(null);
   };
 
+  // Customer booking handler – now from the new flow
   const handleCustomerBooking = (newTx) => {
     setTransactions([newTx, ...transactions]);
     setInventory(inventory.map(item => item.name === newTx.item ? { ...item, status: 'Reserved' } : item));
-    setReservationItem(null);
+    setCustomerRental(null);
     setActiveTab('History');
   };
 
@@ -181,7 +197,7 @@ export default function RentechApp() {
                 role={role}
                 transactions={transactions}
                 inventory={inventory}
-                onOpenNewRental={() => setIsNewRentalModalOpen(true)}
+                onOpenNewRental={() => setShowStaffRental(true)}
                 onNavigate={setActiveTab}
               />
             )}
@@ -193,7 +209,8 @@ export default function RentechApp() {
                 role={role}
                 inventory={inventory}
                 transactions={transactions}
-                onBook={setReservationItem}
+                onBook={(item, date) => setCustomerRental({ item, date })}   // for staff/admin
+                onCustomerBook={(item) => setCustomerRental({ item, date: new Date().toISOString().split('T')[0] })}
                 onEdit={setEditingItem}
               />
             )}
@@ -219,16 +236,14 @@ export default function RentechApp() {
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           currentNav={currentNav}
-          onFabClick={() => (role !== 'Customer' ? setIsNewRentalModalOpen(true) : setActiveTab('Catalog'))}
+          onFabClick={() => {
+            if (role === 'Admin') setActiveTab('AI Insights');
+            else if (role === 'Staff') setShowStaffRental(true);
+            else setCustomerRental({ item: null, date: new Date().toISOString().split('T')[0] });  // opens flow with catalog
+          }}
         />
 
         {/* Modals */}
-        {isNewRentalModalOpen && (
-          <NewRentalModal inventory={inventory} onClose={() => setIsNewRentalModalOpen(false)} onAdd={handleProcessRental} />
-        )}
-        {reservationItem && (
-          <CustomerReservationModal item={reservationItem} onClose={() => setReservationItem(null)} onConfirm={handleCustomerBooking} />
-        )}
         {returnTransaction && (
           <ProcessReturnModal transaction={returnTransaction} onClose={() => setReturnTransaction(null)} onComplete={handleProcessReturn} />
         )}
@@ -246,6 +261,26 @@ export default function RentechApp() {
           <AddInventoryItemModal
             onClose={() => setShowAddItemModal(false)}
             onAdd={handleAddInventoryItem}
+          />
+        )}
+
+        {/* Staff rental page (full‑screen modal) */}
+        {showStaffRental && (
+          <StaffNewRental
+            inventory={inventory}
+            onAddTransaction={handleStaffNewRental}
+            onClose={() => setShowStaffRental(false)}
+          />
+        )}
+
+        {/* Customer rental flow (modal) */}
+        {customerRental && (
+          <CustomerRentalFlow
+            item={customerRental.item}
+            selectedDate={customerRental.date}
+            inventory={inventory}   // <-- pass inventory for the catalog step
+            onClose={() => setCustomerRental(null)}
+            onConfirm={handleCustomerBooking}
           />
         )}
       </div>

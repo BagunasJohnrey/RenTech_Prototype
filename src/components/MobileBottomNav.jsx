@@ -25,7 +25,7 @@ export default function MobileBottomNav({ role, activeTab, setActiveTab, current
     role === 'Admin' ? (
       <Sparkles size={22} strokeWidth={2.5} />
     ) : role === 'Customer' ? (
-      <Search size={22} strokeWidth={2.5} />
+      <Plus size={22} strokeWidth={2.5} />
     ) : (
       <Plus size={24} strokeWidth={2.5} />
     );
@@ -34,7 +34,7 @@ export default function MobileBottomNav({ role, activeTab, setActiveTab, current
     if (role === 'Admin') {
       setActiveTab('AI Insights');        // go to AI Insights for Admin
     } else {
-      onFabClick();                       // Staff → new rental, Customer → catalog
+      onFabClick();                       // Staff → full rental page, Customer → catalog
     }
   };
 

@@ -56,7 +56,7 @@ export default function DashboardView({ role, transactions, inventory, onOpenNew
   // Damaged items
   const damagedCount = inventory.filter(i => i.status === 'Damaged').length;
 
-  // ------- Demand Forecast Data (SMA) -------
+  // Demand Forecast Data (SMA)
   const getMonthData = (month, year) => {
     const txs = transactions.filter(tx => {
       const d = new Date(tx.date);
@@ -66,19 +66,15 @@ export default function DashboardView({ role, transactions, inventory, onOpenNew
   };
 
   const historicalData = [
-    { label: 'Jan', count: 3, revenue: 3600 },
-    { label: 'Feb', count: 5, revenue: 6000 },
-    { label: 'Mar', count: 4, revenue: 5000 },
-    { label: 'Apr', count: 6, revenue: 7200 },
+    { label: 'Jan', count: 3 },
+    { label: 'Feb', count: 5 },
+    { label: 'Mar', count: 4 },
+    { label: 'Apr', count: 6 },
   ];
   const mayData = getMonthData(4, 2026);
   const mayCount = mayData.count;
   const forecastCount = Math.round((historicalData.slice(1).reduce((s, m) => s + m.count, 0) + mayCount) / 3);
-  // For chart: include all 5 historical + forecast
-  const chartMonths = [
-    ...historicalData,
-    { label: 'May', count: mayCount },
-  ];
+  const chartMonths = [...historicalData, { label: 'May', count: mayCount }];
   const maxCount = Math.max(...chartMonths.map(m => m.count), forecastCount);
 
   return (
@@ -103,6 +99,7 @@ export default function DashboardView({ role, transactions, inventory, onOpenNew
             </div>
           )}
 
+          {/* Staff: New Rental button – now opens the full staff rental page */}
           {role === 'Staff' && (
             <button
               onClick={onOpenNewRental}
@@ -112,6 +109,7 @@ export default function DashboardView({ role, transactions, inventory, onOpenNew
             </button>
           )}
 
+          {/* Admin: Settings button */}
           {role === 'Admin' && (
             <button
               onClick={() => onNavigate('Settings')}
@@ -161,7 +159,7 @@ export default function DashboardView({ role, transactions, inventory, onOpenNew
         )}
       </div>
 
-      {/* Two‑column section: Demand Forecast + AI Insights / Activity */}
+      {/* Demand Forecast + AI Insights / Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Demand Forecast Chart (Admin) */}
         {role === 'Admin' && (

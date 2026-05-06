@@ -1,27 +1,62 @@
-import { useState } from 'react';
-import { Search, Filter } from 'lucide-react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { Search, Filter, Loader2 } from 'lucide-react';
 import ItemCard from './ItemCard';
 
-export default function CatalogView({ role, inventory, transactions, onBook, onEdit }) {
+const ITEMS_PER_LOAD = 6;
+
+export default function CatalogView({ role, inventory, transactions, onBook, onCustomerBook, onEdit }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [itemToCheck, setItemToCheck] = useState(null);
   const [checkDate, setCheckDate] = useState('');
   const [availabilityMessage, setAvailabilityMessage] = useState('');
 
-  const filteredInventory = inventory.filter(item =>
-    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.category.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Pagination state
+  const [visibleCount, setVisibleCount] = useState(ITEMS_PER_LOAD);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const catalogRef = useRef(null);
 
-  const handleCheckAvailability = (item) => {
-    setItemToCheck(item);
-    setCheckDate('');
-    setAvailabilityMessage('');
+  // Filtered inventory (available only when searching? keep all, but user can filter)
+  const filteredInventory = useMemo(() => {
+    return inventory.filter(item => {
+      const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            item.category.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesSearch;
+    });
+  }, [inventory, searchQuery]);
+
+  // Reset visible count when filter changes
+  useEffect(() => {
+    setVisibleCount(ITEMS_PER_LOAD);
+    setLoadingMore(false);
+  }, [searchQuery]);
+
+  const displayedItems = filteredInventory.slice(0, visibleCount);
+  const allLoaded = visibleCount >= filteredInventory.length;
+
+  const handleCatalogScroll = useCallback(() => {
+    const el = catalogRef.current;
+    if (!el || loadingMore || allLoaded) return;
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 20) {
+      setLoadingMore(true);
+      setTimeout(() => {
+        setVisibleCount(prev => Math.min(prev + ITEMS_PER_LOAD, filteredInventory.length));
+        setLoadingMore(false);
+      }, 300);
+    }
+  }, [loadingMore, allLoaded, filteredInventory.length]);
+
+  const handleItemAction = (item) => {
+    if (role === 'Customer') {
+      onCustomerBook(item);
+    } else {
+      setItemToCheck(item);
+      setCheckDate('');
+      setAvailabilityMessage('');
+    }
   };
 
   const handleDateCheck = () => {
     if (!checkDate || !itemToCheck) return;
-    // Mock availability check: see if any Active/Reserved transaction for same item on that date
     const conflict = transactions.some(
       tx =>
         tx.item === itemToCheck.name &&
@@ -29,10 +64,9 @@ export default function CatalogView({ role, inventory, transactions, onBook, onE
         tx.date === new Date(checkDate).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })
     );
     if (conflict) {
-      setAvailabilityMessage(`Unavailable on ${checkDate}. Already booked.`);
+      setAvailabilityMessage(`Unavailable on ${checkDate}.`);
     } else {
-      // Available – open reservation modal
-      onBook(itemToCheck);
+      onBook(itemToCheck, checkDate);
       setItemToCheck(null);
       setAvailabilityMessage('');
     }
@@ -52,7 +86,7 @@ export default function CatalogView({ role, inventory, transactions, onBook, onE
               type="text"
               placeholder="Search (e.g. Gatsby, Suit)..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
               className="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200/80 rounded-full text-sm font-medium focus:outline-none focus:border-gray-400 focus:ring-1 focus:ring-gray-400 shadow-sm transition-all"
             />
           </div>
@@ -62,14 +96,14 @@ export default function CatalogView({ role, inventory, transactions, onBook, onE
         </div>
       </div>
 
-      {/* Date availability check modal (inline) */}
-      {itemToCheck && (
+      {/* Date picker for admin/staff */}
+      {itemToCheck && role !== 'Customer' && (
         <div className="bg-white rounded-3xl border border-gray-100/80 shadow-lg p-6 max-w-md mx-auto">
           <h3 className="font-bold text-lg mb-4">Check Availability for {itemToCheck.name}</h3>
           <input
             type="date"
             value={checkDate}
-            onChange={(e) => setCheckDate(e.target.value)}
+            onChange={e => setCheckDate(e.target.value)}
             min={new Date().toISOString().split('T')[0]}
             className="w-full bg-gray-50 border border-gray-200/80 rounded-2xl px-4 py-3 text-sm font-medium mb-4"
           />
@@ -89,24 +123,37 @@ export default function CatalogView({ role, inventory, transactions, onBook, onE
         </div>
       )}
 
-      {filteredInventory.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center text-gray-400 space-y-3 pb-20">
-          <Search size={40} className="text-gray-300" />
-          <p className="font-semibold text-sm">No items found matching your search.</p>
+      {/* Scrollable catalog grid with infinite load */}
+      <div
+        ref={catalogRef}
+        onScroll={handleCatalogScroll}
+        className="flex-1 overflow-y-auto pr-1 hide-scrollbar"
+      >
+        {filteredInventory.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-gray-400 space-y-3">
+            <Search size={40} className="text-gray-300" />
+            <p className="font-semibold text-sm">No items found matching your search.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 pb-6">
+            {displayedItems.map(item => (
+              <ItemCard
+                key={item.id}
+                item={item}
+                role={role}
+                onBook={() => handleItemAction(item)}
+                onEdit={() => onEdit(item)}
+              />
+            ))}
+          </div>
+        )}
+        <div className="py-3 flex justify-center">
+          {loadingMore && <Loader2 size={18} className="text-gray-400 animate-spin" />}
+          {!loadingMore && allLoaded && filteredInventory.length > 0 && (
+            <p className="text-xs text-gray-400">All items loaded</p>
+          )}
         </div>
-      ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6 pb-6">
-          {filteredInventory.map((item) => (
-            <ItemCard
-              key={item.id}
-              item={item}
-              role={role}
-              onBook={() => handleCheckAvailability(item)}
-              onEdit={() => onEdit(item)}
-            />
-          ))}
-        </div>
-      )}
+      </div>
     </div>
   );
 }
