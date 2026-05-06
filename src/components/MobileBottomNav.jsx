@@ -1,4 +1,4 @@
-import { Plus, Search, Sparkles } from 'lucide-react';
+import { Plus, Sparkles } from 'lucide-react';
 
 function BottomNavItem({ item, isActive, onClick }) {
   const Icon = item.icon;

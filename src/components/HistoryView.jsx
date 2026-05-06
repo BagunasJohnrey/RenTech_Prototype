@@ -60,7 +60,7 @@ export default function HistoryView({ role, transactions, onReturn }) {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div>
         <h2 className="text-3xl font-bold text-gray-900 tracking-tight">
-          {role === 'Customer' ? 'My Rentals' : 'Records'}
+          {role === 'Customer' ? 'Transactions' : 'Records'}
         </h2>
         <p className="text-gray-500 font-medium mt-1">
           {role === 'Customer'

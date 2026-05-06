@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   LayoutGrid, ShoppingBag, Clock, Sparkles, Settings, User,
-  ClipboardList
+  ClipboardList, MessageCircle
 } from 'lucide-react';
 
 import { INITIAL_INVENTORY } from './data/inventory';
@@ -22,6 +22,7 @@ import CustomerRentalFlow from './components/CustomerRentalFlow';
 import ProcessReturnModal from './components/ProcessReturnModal';
 import EditItemModal from './components/EditItemModal';
 import AddInventoryItemModal from './components/AddInventoryItemModal';
+import ChatbotModal from './components/ChatbotModal';
 
 const customStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -68,13 +69,21 @@ export default function RentechApp() {
     { username: 'staff', password: 'staff' }
   ]);
 
+  // Customer profile (editable in settings)
+  const [customerInfo, setCustomerInfo] = useState({
+    name: 'Maria Santos',
+    contact: '0917 123 4567',
+    address: '123 Rizal St, Makati',
+  });
+
   // Modal / page states
   const [showStaffRental, setShowStaffRental] = useState(false);
   const [returnTransaction, setReturnTransaction] = useState(null);
   const [editingItem, setEditingItem] = useState(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showAddItemModal, setShowAddItemModal] = useState(false);
-  const [customerRental, setCustomerRental] = useState(null);   // { item, date }
+  const [customerRental, setCustomerRental] = useState(null);   // { item, date } or null
+  const [showChatbot, setShowChatbot] = useState(false);
 
   const handleLogin = (userRole) => {
     setRole(userRole);
@@ -119,7 +128,7 @@ export default function RentechApp() {
     setReturnTransaction(null);
   };
 
-  // Customer booking handler – now from the new flow
+  // Customer booking handler – from the new CustomerRentalFlow
   const handleCustomerBooking = (newTx) => {
     setTransactions([newTx, ...transactions]);
     setInventory(inventory.map(item => item.name === newTx.item ? { ...item, status: 'Reserved' } : item));
@@ -199,6 +208,7 @@ export default function RentechApp() {
                 inventory={inventory}
                 onOpenNewRental={() => setShowStaffRental(true)}
                 onNavigate={setActiveTab}
+                onOpenChatbot={() => setShowChatbot(true)}
               />
             )}
             {activeTab === 'Tasks' && (
@@ -209,7 +219,7 @@ export default function RentechApp() {
                 role={role}
                 inventory={inventory}
                 transactions={transactions}
-                onBook={(item, date) => setCustomerRental({ item, date })}   // for staff/admin
+                onBook={(item, date) => setCustomerRental({ item, date })}
                 onCustomerBook={(item) => setCustomerRental({ item, date: new Date().toISOString().split('T')[0] })}
                 onEdit={setEditingItem}
               />
@@ -226,6 +236,8 @@ export default function RentechApp() {
                 staffList={staffAccounts}
                 onAddStaff={handleAddStaff}
                 onRemoveStaff={handleRemoveStaff}
+                customerInfo={customerInfo}
+                onUpdateCustomer={setCustomerInfo}
               />
             )}
           </div>
@@ -239,7 +251,7 @@ export default function RentechApp() {
           onFabClick={() => {
             if (role === 'Admin') setActiveTab('AI Insights');
             else if (role === 'Staff') setShowStaffRental(true);
-            else setCustomerRental({ item: null, date: new Date().toISOString().split('T')[0] });  // opens flow with catalog
+            else setCustomerRental({ item: null, date: new Date().toISOString().split('T')[0] });
           }}
         />
 
@@ -278,11 +290,15 @@ export default function RentechApp() {
           <CustomerRentalFlow
             item={customerRental.item}
             selectedDate={customerRental.date}
-            inventory={inventory}   // <-- pass inventory for the catalog step
+            inventory={inventory}
+            customerInfo={customerInfo}
             onClose={() => setCustomerRental(null)}
             onConfirm={handleCustomerBooking}
           />
         )}
+
+        {/* Chatbot modal */}
+        {showChatbot && <ChatbotModal onClose={() => setShowChatbot(false)} />}
       </div>
     </>
   );

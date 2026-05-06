@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { User, ShieldCheck, Plus, Trash2, Users } from 'lucide-react';
 
-export default function ProfileSettingsView({ role, staffList, onAddStaff, onRemoveStaff }) {
+export default function ProfileSettingsView({ role, staffList, onAddStaff, onRemoveStaff, customerInfo, onUpdateCustomer }) {
   const [newUsername, setNewUsername] = useState('');
   const [newPassword, setNewPassword] = useState('');
+  const [editCustomer, setEditCustomer] = useState(false);
+  const [localCustomer, setLocalCustomer] = useState(customerInfo || { name: '', contact: '', address: '' });
+  const [saveMessage, setSaveMessage] = useState('');
 
   const handleAddStaff = (e) => {
     e.preventDefault();
@@ -11,6 +14,13 @@ export default function ProfileSettingsView({ role, staffList, onAddStaff, onRem
     onAddStaff({ username: newUsername, password: newPassword });
     setNewUsername('');
     setNewPassword('');
+  };
+
+  const handleSaveCustomer = () => {
+    onUpdateCustomer(localCustomer);
+    setEditCustomer(false);
+    setSaveMessage('Profile updated!');
+    setTimeout(() => setSaveMessage(''), 2000);
   };
 
   return (
@@ -28,23 +38,83 @@ export default function ProfileSettingsView({ role, staffList, onAddStaff, onRem
         <div className="flex-1 space-y-4 w-full">
           <div>
             <h3 className="text-xl font-bold text-gray-900">
-              {role === 'Customer' ? 'Maria Santos' : 'Admin User'}
+              {role === 'Customer' ? (customerInfo?.name || 'Customer') : 'Admin User'}
             </h3>
             <span className="text-[11px] font-bold uppercase tracking-wider text-[#bf4a53] bg-red-50 px-2 py-1 rounded-md mt-1 inline-block">
               {role} Role
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100/80">
-            <div>
-              <label className="text-[10px] font-bold text-gray-400 uppercase">Email Address</label>
-              <p className="text-sm font-medium text-gray-900">user@rentech.com</p>
+          {/* Always show fields – for customer they are editable, for others just display */}
+          {role === 'Customer' ? (
+            editCustomer ? (
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  value={localCustomer.name}
+                  onChange={(e) => setLocalCustomer({ ...localCustomer, name: e.target.value })}
+                  className="w-full p-2.5 bg-gray-50 rounded-xl border text-sm focus:outline-none focus:border-[#bf4a53]"
+                  placeholder="Full Name"
+                />
+                <input
+                  type="text"
+                  value={localCustomer.contact}
+                  onChange={(e) => setLocalCustomer({ ...localCustomer, contact: e.target.value })}
+                  className="w-full p-2.5 bg-gray-50 rounded-xl border text-sm focus:outline-none focus:border-[#bf4a53]"
+                  placeholder="Contact Number"
+                />
+                <input
+                  type="text"
+                  value={localCustomer.address}
+                  onChange={(e) => setLocalCustomer({ ...localCustomer, address: e.target.value })}
+                  className="w-full p-2.5 bg-gray-50 rounded-xl border text-sm focus:outline-none focus:border-[#bf4a53]"
+                  placeholder="Address"
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleSaveCustomer}
+                    className="px-4 py-2 bg-[#bf4a53] text-white rounded-full text-sm font-bold hover:bg-red-700 transition-colors"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={() => { setEditCustomer(false); setLocalCustomer(customerInfo); }}
+                    className="px-4 py-2 border border-gray-200 rounded-full text-sm font-bold hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                {saveMessage && <p className="text-xs text-emerald-600 font-bold mt-1">{saveMessage}</p>}
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-[10px] font-bold text-gray-400 uppercase">Name</p>
+                <p className="text-sm font-medium text-gray-900">{customerInfo.name}</p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase mt-3">Contact</p>
+                <p className="text-sm font-medium text-gray-900">{customerInfo.contact}</p>
+                <p className="text-[10px] font-bold text-gray-400 uppercase mt-3">Address</p>
+                <p className="text-sm font-medium text-gray-900">{customerInfo.address}</p>
+                <button
+                  onClick={() => setEditCustomer(true)}
+                  className="mt-3 text-xs font-bold text-[#bf4a53] hover:underline"
+                >
+                  Edit Profile
+                </button>
+              </div>
+            )
+          ) : (
+            // Admin/Staff – static info
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100/80">
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase">Email Address</label>
+                <p className="text-sm font-medium text-gray-900">user@rentech.com</p>
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-gray-400 uppercase">Phone (Semaphore Linked)</label>
+                <p className="text-sm font-medium text-gray-900">+63 917 123 4567</p>
+              </div>
             </div>
-            <div>
-              <label className="text-[10px] font-bold text-gray-400 uppercase">Phone (Semaphore Linked)</label>
-              <p className="text-sm font-medium text-gray-900">+63 917 123 4567</p>
-            </div>
-          </div>
+          )}
         </div>
       </div>
 
@@ -80,7 +150,6 @@ export default function ProfileSettingsView({ role, staffList, onAddStaff, onRem
             <Users size={20} className="text-[#bf4a53]" /> Staff Management
           </h3>
 
-          {/* Add new staff form */}
           <form onSubmit={handleAddStaff} className="flex flex-col sm:flex-row gap-3">
             <input
               type="text"
@@ -106,7 +175,6 @@ export default function ProfileSettingsView({ role, staffList, onAddStaff, onRem
             </button>
           </form>
 
-          {/* Staff list */}
           {staffList.length === 0 ? (
             <p className="text-sm text-gray-500 py-4">No staff accounts yet.</p>
           ) : (

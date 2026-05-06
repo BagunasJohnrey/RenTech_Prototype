@@ -2,7 +2,7 @@ import { Sparkles, ShoppingBag, Clock, BarChart3, Activity, Plus, User, Settings
 import ItemCard from './ItemCard';
 import StatCard from './StatCard';
 
-export default function DashboardView({ role, transactions, inventory, onOpenNewRental, onNavigate }) {
+export default function DashboardView({ role, transactions, inventory, onOpenNewRental, onNavigate, onOpenChatbot }) {
   // Customer view (unchanged)
   if (role === 'Customer') {
     return (
@@ -15,7 +15,10 @@ export default function DashboardView({ role, transactions, inventory, onOpenNew
           <p className="text-gray-600 text-sm mb-8 max-w-sm relative z-10 leading-relaxed font-medium">
             Describe your event theme or style preference, and let our AI stylist curate the ideal outfit.
           </p>
-          <button className="bg-[#bf4a53] text-white px-6 py-3 rounded-full text-sm font-semibold shadow-md shadow-red-500/20 flex items-center gap-2 hover:bg-red-700 transition-colors relative z-10">
+          <button
+            onClick={onOpenChatbot}
+            className="bg-[#bf4a53] text-white px-6 py-3 rounded-full text-sm font-semibold shadow-md shadow-red-500/20 flex items-center gap-2 hover:bg-red-700 transition-colors relative z-10"
+          >
             <Sparkles size={16} /> Consult AI Stylist
           </button>
         </div>
