@@ -1,11 +1,9 @@
-import React from 'react';
-import {
-  Sparkles, ShoppingBag, Clock, BarChart3, Activity, Plus, User
-} from 'lucide-react';
+import { Sparkles, ShoppingBag, Clock, BarChart3, Activity, Plus, User, Settings } from 'lucide-react';
 import ItemCard from './ItemCard';
 import StatCard from './StatCard';
 
-export default function DashboardView({ role, transactions, inventory, onOpenNewRental }) {
+export default function DashboardView({ role, transactions, inventory, onOpenNewRental, onNavigate }) {
+  // Customer view remains unchanged
   if (role === 'Customer') {
     return (
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -46,7 +44,10 @@ export default function DashboardView({ role, transactions, inventory, onOpenNew
           <h2 className="text-3xl font-bold text-gray-900 tracking-tight">Overview</h2>
           <p className="text-gray-500 font-medium mt-1">Here's what's happening at the boutique today.</p>
         </div>
+
+        {/* Right side action buttons */}
         <div className="flex items-center gap-3">
+          {/* Admin: AI Insights chip */}
           {role === 'Admin' && (
             <div className="bg-white border border-gray-100 shadow-sm rounded-full px-4 py-2 flex items-center gap-3">
               <Sparkles size={16} className="text-[#bf4a53]" />
@@ -54,15 +55,30 @@ export default function DashboardView({ role, transactions, inventory, onOpenNew
               <button className="ml-1 text-xs text-[#bf4a53] font-bold hover:underline">View</button>
             </div>
           )}
-          <button
-            onClick={onOpenNewRental}
-            className="hidden md:flex bg-gray-900 text-white px-5 py-2.5 rounded-full text-sm font-semibold shadow-sm shadow-gray-900/20 items-center gap-2 hover:bg-gray-800 transition-all"
-          >
-            <Plus size={18} /> New Rental
-          </button>
+
+          {/* Staff: New Rental button (hidden on mobile) */}
+          {role === 'Staff' && (
+            <button
+              onClick={onOpenNewRental}
+              className="hidden md:flex bg-gray-900 text-white px-5 py-2.5 rounded-full text-sm font-semibold shadow-sm shadow-gray-900/20 items-center gap-2 hover:bg-gray-800 transition-all"
+            >
+              <Plus size={18} /> New Rental
+            </button>
+          )}
+
+          {/* Admin: Settings button (hidden on mobile) */}
+          {role === 'Admin' && (
+            <button
+              onClick={() => onNavigate('Settings')}
+              className="hidden md:flex bg-gray-900 text-white px-5 py-2.5 rounded-full text-sm font-semibold shadow-sm shadow-gray-900/20 items-center gap-2 hover:bg-gray-800 transition-all"
+            >
+              <Settings size={18} /> Settings
+            </button>
+          )}
         </div>
       </div>
 
+      {/* Stat cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
         <StatCard title="Active Rentals" value={activeRentalsCount.toString()} trend="+12%" icon={ShoppingBag} />
         <StatCard title="Pending Returns" value="8" trend="-2%" icon={Clock} isWarning />
@@ -81,6 +97,7 @@ export default function DashboardView({ role, transactions, inventory, onOpenNew
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Chart mockup (Admin only) */}
         {role === 'Admin' && (
           <div className="bg-white rounded-3xl p-7 border border-gray-100/80 shadow-sm lg:col-span-2">
             <div className="flex items-center justify-between mb-8">
@@ -120,6 +137,7 @@ export default function DashboardView({ role, transactions, inventory, onOpenNew
           </div>
         )}
 
+        {/* AI Insights (Admin) or Activity (Staff) */}
         {role === 'Admin' ? (
           <div className="bg-white rounded-3xl p-7 border border-gray-100/80 shadow-sm flex flex-col relative overflow-hidden">
             <div className="absolute -right-10 -top-10 w-32 h-32 bg-red-50/50 rounded-full blur-3xl pointer-events-none" />
@@ -144,6 +162,7 @@ export default function DashboardView({ role, transactions, inventory, onOpenNew
             </button>
           </div>
         ) : (
+          // Staff: Recent Activity
           <div className="bg-white rounded-3xl p-7 border border-gray-100/80 shadow-sm lg:col-span-3">
             <div className="flex justify-between items-center mb-6">
               <h3 className="font-bold text-gray-900 text-lg">Recent Activity</h3>

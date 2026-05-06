@@ -17,7 +17,6 @@ import HistoryView from './components/HistoryView';
 import AIInsightsView from './components/AIInsightsView';
 import ProfileSettingsView from './components/ProfileSettingsView';
 import StaffTasksView from './components/StaffTasksView';
-import StaffManagement from './components/StaffManagement';
 import NewRentalModal from './components/NewRentalModal';
 import CustomerReservationModal from './components/CustomerReservationModal';
 import ProcessReturnModal from './components/ProcessReturnModal';
@@ -42,7 +41,6 @@ const navItems = {
     { id: 'Catalog', icon: ShoppingBag, label: 'Inventory' },
     { id: 'History', icon: Clock, label: 'Transactions' },
     { id: 'AI Insights', icon: Sparkles, label: 'AI Intelligence', special: true },
-    { id: 'Staff', icon: Users, label: 'Staff' },       // new
     { id: 'Settings', icon: Settings, label: 'System Settings' },
   ],
   Staff: [
@@ -179,7 +177,13 @@ export default function RentechApp() {
 
           <div className="p-5 md:p-10 max-w-7xl mx-auto w-full">
             {(activeTab === 'Dashboard' || activeTab === 'Home') && (
-              <DashboardView role={role} transactions={transactions} inventory={inventory} onOpenNewRental={() => setIsNewRentalModalOpen(true)} />
+              <DashboardView
+                role={role}
+                transactions={transactions}
+                inventory={inventory}
+                onOpenNewRental={() => setIsNewRentalModalOpen(true)}
+                onNavigate={setActiveTab}
+              />
             )}
             {activeTab === 'Tasks' && (
               <StaffTasksView transactions={transactions} inventory={inventory} />
@@ -197,14 +201,14 @@ export default function RentechApp() {
               <HistoryView role={role} transactions={transactions} onReturn={setReturnTransaction} />
             )}
             {activeTab === 'AI Insights' && <AIInsightsView />}
-            {activeTab === 'Staff' && role === 'Admin' && (
-              <StaffManagement
+            {(activeTab === 'Profile' || activeTab === 'Settings') && (
+              <ProfileSettingsView
+                role={role}
                 staffList={staffAccounts}
                 onAddStaff={handleAddStaff}
                 onRemoveStaff={handleRemoveStaff}
               />
             )}
-            {(activeTab === 'Profile' || activeTab === 'Settings') && <ProfileSettingsView role={role} />}
           </div>
         </main>
 
