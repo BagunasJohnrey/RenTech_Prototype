@@ -1,27 +1,32 @@
-import React from 'react';
-
-export default function StatCard({ title, value, trend, icon: Icon, isWarning, isAlert }) {
+export default function StatCard({ title, value, trend, icon: Icon, isWarning, isAlert, onClick }) {
   return (
-    <div className="bg-white rounded-3xl p-5 border border-gray-100/80 shadow-sm hover:shadow-md transition-shadow duration-300">
+    <div
+      onClick={onClick}
+      className={`bg-white rounded-3xl p-5 border border-gray-100/80 shadow-sm hover:shadow-md transition-shadow duration-300 ${
+        onClick ? 'cursor-pointer' : ''
+      }`}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={(e) => {
+        if (onClick && (e.key === 'Enter' || e.key === ' ')) {
+          e.preventDefault();
+          onClick();
+        }
+      }}
+    >
       <div className="flex items-start justify-between mb-4">
         <div
           className={`p-2.5 rounded-2xl ${
-            isAlert
-              ? 'bg-red-50 text-red-500'
-              : isWarning
-              ? 'bg-orange-50 text-orange-400'
-              : 'bg-gray-50 text-gray-500'
+            isAlert ? 'bg-red-50 text-red-500' : isWarning ? 'bg-orange-50 text-orange-400' : 'bg-gray-50 text-gray-500'
           }`}
         >
           <Icon size={20} />
         </div>
         <span
           className={`text-[11px] font-bold px-2.5 py-1 rounded-md tracking-wide ${
-            trend.includes('+')
-              ? 'bg-emerald-50 text-emerald-600'
-              : trend.includes('-')
-              ? 'bg-red-50 text-red-500'
-              : 'bg-gray-100 text-gray-600'
+            trend.includes('+') ? 'bg-emerald-50 text-emerald-600' :
+            trend.includes('-') ? 'bg-red-50 text-red-500' :
+            'bg-gray-100 text-gray-600'
           }`}
         >
           {trend}

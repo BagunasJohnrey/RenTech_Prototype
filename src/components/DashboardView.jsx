@@ -3,7 +3,7 @@ import ItemCard from './ItemCard';
 import StatCard from './StatCard';
 
 export default function DashboardView({ role, transactions, inventory, onOpenNewRental, onNavigate }) {
-  // Customer view remains unchanged
+  // Customer view (unchanged)
   if (role === 'Customer') {
     return (
       <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -35,7 +35,51 @@ export default function DashboardView({ role, transactions, inventory, onOpenNew
     );
   }
 
-  const activeRentalsCount = transactions.filter((tx) => tx.status === 'Active').length;
+  // ---------- Admin / Staff dashboard ----------
+  const today = new Date('2026-05-06');
+
+  // Active rentals
+  const activeRentals = transactions.filter(tx => tx.status === 'Active');
+  const activeRentalsCount = activeRentals.length;
+
+  // Pending returns = overdue Active rentals
+  const pendingReturns = activeRentals.filter(tx => new Date(tx.date) < today).length;
+
+  // Monthly revenue (May 2026)
+  const monthlyRevenue = transactions
+    .filter(tx => {
+      const d = new Date(tx.date);
+      return d.getFullYear() === 2026 && d.getMonth() === 4;
+    })
+    .reduce((sum, tx) => sum + tx.amount, 0);
+
+  // Damaged items
+  const damagedCount = inventory.filter(i => i.status === 'Damaged').length;
+
+  // ------- Demand Forecast Data (SMA) -------
+  const getMonthData = (month, year) => {
+    const txs = transactions.filter(tx => {
+      const d = new Date(tx.date);
+      return d.getFullYear() === year && d.getMonth() === month;
+    });
+    return { count: txs.length, revenue: txs.reduce((s, tx) => s + tx.amount, 0) };
+  };
+
+  const historicalData = [
+    { label: 'Jan', count: 3, revenue: 3600 },
+    { label: 'Feb', count: 5, revenue: 6000 },
+    { label: 'Mar', count: 4, revenue: 5000 },
+    { label: 'Apr', count: 6, revenue: 7200 },
+  ];
+  const mayData = getMonthData(4, 2026);
+  const mayCount = mayData.count;
+  const forecastCount = Math.round((historicalData.slice(1).reduce((s, m) => s + m.count, 0) + mayCount) / 3);
+  // For chart: include all 5 historical + forecast
+  const chartMonths = [
+    ...historicalData,
+    { label: 'May', count: mayCount },
+  ];
+  const maxCount = Math.max(...chartMonths.map(m => m.count), forecastCount);
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -45,18 +89,20 @@ export default function DashboardView({ role, transactions, inventory, onOpenNew
           <p className="text-gray-500 font-medium mt-1">Here's what's happening at the boutique today.</p>
         </div>
 
-        {/* Right side action buttons */}
         <div className="flex items-center gap-3">
-          {/* Admin: AI Insights chip */}
           {role === 'Admin' && (
             <div className="bg-white border border-gray-100 shadow-sm rounded-full px-4 py-2 flex items-center gap-3">
               <Sparkles size={16} className="text-[#bf4a53]" />
               <span className="text-xs font-semibold text-gray-700">Insights Ready</span>
-              <button className="ml-1 text-xs text-[#bf4a53] font-bold hover:underline">View</button>
+              <button
+                onClick={() => onNavigate('AI Insights')}
+                className="ml-1 text-xs text-[#bf4a53] font-bold hover:underline"
+              >
+                View
+              </button>
             </div>
           )}
 
-          {/* Staff: New Rental button (hidden on mobile) */}
           {role === 'Staff' && (
             <button
               onClick={onOpenNewRental}
@@ -66,7 +112,6 @@ export default function DashboardView({ role, transactions, inventory, onOpenNew
             </button>
           )}
 
-          {/* Admin: Settings button (hidden on mobile) */}
           {role === 'Admin' && (
             <button
               onClick={() => onNavigate('Settings')}
@@ -78,66 +123,88 @@ export default function DashboardView({ role, transactions, inventory, onOpenNew
         </div>
       </div>
 
-      {/* Stat cards */}
+      {/* ---- Clickable KPIs ---- */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5">
-        <StatCard title="Active Rentals" value={activeRentalsCount.toString()} trend="+12%" icon={ShoppingBag} />
-        <StatCard title="Pending Returns" value="8" trend="-2%" icon={Clock} isWarning />
+        <StatCard
+          title="Active Rentals"
+          value={activeRentalsCount.toString()}
+          trend="+12%"
+          icon={ShoppingBag}
+          onClick={() => onNavigate('History')}
+        />
+        <StatCard
+          title="Pending Returns"
+          value={pendingReturns.toString()}
+          trend={pendingReturns > 0 ? 'Action needed' : 'On time'}
+          icon={Clock}
+          isWarning={pendingReturns > 0}
+          onClick={() => onNavigate('History')}
+        />
         {role === 'Admin' && (
           <>
-            <StatCard title="Monthly Revenue" value="₱45,200" trend="+24%" icon={BarChart3} />
+            <StatCard
+              title="Monthly Revenue"
+              value={`₱${monthlyRevenue.toLocaleString()}`}
+              trend="+24%"
+              icon={BarChart3}
+              onClick={() => onNavigate('AI Insights')}
+            />
             <StatCard
               title="Damaged Items"
-              value={inventory.filter((i) => i.status === 'Damaged').length.toString()}
-              trend="Action Needed"
+              value={damagedCount.toString()}
+              trend={damagedCount > 0 ? 'Action Needed' : 'None'}
               icon={Activity}
-              isAlert
+              isAlert={damagedCount > 0}
+              onClick={() => onNavigate('Catalog')}
             />
           </>
         )}
       </div>
 
+      {/* Two‑column section: Demand Forecast + AI Insights / Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Chart mockup (Admin only) */}
+        {/* Demand Forecast Chart (Admin) */}
         {role === 'Admin' && (
           <div className="bg-white rounded-3xl p-7 border border-gray-100/80 shadow-sm lg:col-span-2">
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h3 className="font-bold text-gray-900 text-lg">Demand Forecast</h3>
-                <p className="text-sm text-gray-500 mt-1 font-medium">Simple Moving Average projection</p>
+                <p className="text-sm text-gray-500 mt-1 font-medium">SMA projection – next month</p>
               </div>
-              <select className="text-sm font-semibold text-gray-600 bg-gray-50/80 hover:bg-gray-100 border-0 rounded-xl py-2 px-4 transition-colors outline-none cursor-pointer">
-                <option>Next 3 Months</option>
-                <option>Next 6 Months</option>
-              </select>
+              <button
+                onClick={() => onNavigate('AI Insights')}
+                className="text-xs font-bold text-[#bf4a53] hover:underline"
+              >
+                Full Analysis
+              </button>
             </div>
 
-            <div className="h-56 flex items-end justify-between gap-3 mt-4">
-              {[40, 55, 30, 80, 100, 45].map((val, i) => (
-                <div key={i} className="w-full flex flex-col justify-end group">
-                  {i >= 3 && (
-                    <div
-                      className="w-full bg-red-50 rounded-t-lg mb-1.5 transition-all duration-500 relative"
-                      style={{ height: `${val * 0.2}%` }}
-                    >
-                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 text-[10px] font-bold text-[#bf4a53] hidden group-hover:block bg-red-50 px-2 py-1 rounded-md">
-                        Est.
-                      </div>
-                    </div>
-                  )}
+            <div className="h-48 flex items-end justify-between gap-2 mt-4">
+              {chartMonths.map((m, i) => (
+                <div key={m.label} className="flex-1 flex flex-col items-center justify-end h-full">
                   <div
-                    className={`w-full rounded-xl transition-all duration-700 ${i >= 3 ? 'bg-[#bf4a53]/40' : 'bg-gray-900'}`}
-                    style={{ height: `${val}%` }}
+                    className="w-full bg-gray-900 rounded-t-lg transition-all duration-500"
+                    style={{ height: `${(m.count / maxCount) * 100}%` }}
                   />
-                  <span className="text-[11px] text-gray-400 font-semibold text-center mt-3 hidden sm:block">
-                    {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'][i]}
-                  </span>
+                  <span className="text-[10px] text-gray-400 font-semibold mt-2">{m.label}</span>
                 </div>
               ))}
+              {/* Forecast bar (June) */}
+              <div className="flex-1 flex flex-col items-center justify-end h-full">
+                <div
+                  className="w-full bg-[#bf4a53]/40 border-2 border-dashed border-[#bf4a53] rounded-t-lg"
+                  style={{ height: `${(forecastCount / maxCount) * 100}%` }}
+                />
+                <span className="text-[10px] text-[#bf4a53] font-semibold mt-2">Jun*</span>
+              </div>
             </div>
+            <p className="text-[10px] text-gray-400 mt-3 text-center">
+              * SMA forecast: {forecastCount} rentals expected
+            </p>
           </div>
         )}
 
-        {/* AI Insights (Admin) or Activity (Staff) */}
+        {/* AI Insights or Staff Activity */}
         {role === 'Admin' ? (
           <div className="bg-white rounded-3xl p-7 border border-gray-100/80 shadow-sm flex flex-col relative overflow-hidden">
             <div className="absolute -right-10 -top-10 w-32 h-32 bg-red-50/50 rounded-full blur-3xl pointer-events-none" />
@@ -157,12 +224,14 @@ export default function DashboardView({ role, transactions, inventory, onOpenNew
                 Promote underperforming "Classic Navy Suits" with a bundle discount.
               </div>
             </div>
-            <button className="w-full mt-6 bg-white border border-gray-200 text-gray-800 font-semibold text-sm py-2.5 rounded-full hover:bg-gray-50 transition-colors relative z-10 shadow-sm">
+            <button
+              onClick={() => onNavigate('AI Insights')}
+              className="w-full mt-6 bg-white border border-gray-200 text-gray-800 font-semibold text-sm py-2.5 rounded-full hover:bg-gray-50 transition-colors relative z-10 shadow-sm"
+            >
               Full Report
             </button>
           </div>
         ) : (
-          // Staff: Recent Activity
           <div className="bg-white rounded-3xl p-7 border border-gray-100/80 shadow-sm lg:col-span-3">
             <div className="flex justify-between items-center mb-6">
               <h3 className="font-bold text-gray-900 text-lg">Recent Activity</h3>
