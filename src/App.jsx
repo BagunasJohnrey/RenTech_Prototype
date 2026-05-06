@@ -88,7 +88,7 @@ export default function RentechApp() {
   const handleLogin = (userRole) => {
     setRole(userRole);
     setIsLoggedIn(true);
-    setActiveTab(userRole === 'Customer' ? 'Catalog' : 'Dashboard');
+    setActiveTab(userRole === 'Customer' ? 'Home' : 'Dashboard');
   };
 
   const handleRoleChange = (newRole) => {
