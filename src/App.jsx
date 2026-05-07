@@ -191,7 +191,7 @@ export default function RentechApp() {
         <header className="sticky top-0 bg-white/70 backdrop-blur-xl border-b border-gray-100/50 px-5 md:px-10 py-4 flex items-center justify-between z-20">
         <div className="flex items-center gap-2 md:hidden">
           <img
-            src="public/RenTech.png"
+            src="/RenTech.png"
             alt="Profile"
             className="w-8 h-8 rounded-full object-cover border border-gray-200"
           />

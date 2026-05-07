@@ -1,5 +1,12 @@
 import { useState } from 'react';
-import { User, ShieldCheck, Plus, Trash2, Users, LogOut } from 'lucide-react';
+import { User, ShieldCheck, Plus, Trash2, Users, LogOut, MessageSquare } from 'lucide-react';
+
+const DEFAULT_TEMPLATES = {
+  bookingConfirmation: `Hi {customerName}, your booking for {itemName} on {rentalDate} is confirmed! Show this QR when you pick up your item: {qrCode}. Thank you for choosing RENTECH.`,
+  returnReminder: `Hi {customerName}, this is a friendly reminder to return your rented item '{itemName}' by {returnDate}. Late returns are subject to penalties. – RENTECH`,
+  overdueAlert: `URGENT: {customerName}, your rental for '{itemName}' is overdue. Please return it immediately to avoid additional charges. – RENTECH`,
+  paymentConfirmation: `Hi {customerName}, we received your downpayment of ₱{downpaymentAmount} for '{itemName}'. Remaining balance ₱{balanceAmount} is due at pickup. – RENTECH`,
+};
 
 export default function ProfileSettingsView({
   role,
@@ -16,6 +23,12 @@ export default function ProfileSettingsView({
   const [localCustomer, setLocalCustomer] = useState(customerInfo || { name: '', contact: '', address: '' });
   const [saveMessage, setSaveMessage] = useState('');
 
+  // SMS Templates state
+  const [templates, setTemplates] = useState({ ...DEFAULT_TEMPLATES });
+  const [editingTemplate, setEditingTemplate] = useState(null); // which template key is being edited
+  const [templateEditValue, setTemplateEditValue] = useState('');
+  const [templateSaveMsg, setTemplateSaveMsg] = useState('');
+
   const handleAddStaff = (e) => {
     e.preventDefault();
     if (!newUsername || !newPassword) return;
@@ -31,6 +44,50 @@ export default function ProfileSettingsView({
     setTimeout(() => setSaveMessage(''), 2000);
   };
 
+  // ---------- SMS Template handlers ----------
+  const startEditTemplate = (key) => {
+    setEditingTemplate(key);
+    setTemplateEditValue(templates[key]);
+    setTemplateSaveMsg('');
+  };
+
+  const cancelEditTemplate = () => {
+    setEditingTemplate(null);
+    setTemplateEditValue('');
+  };
+
+  const saveTemplate = (key) => {
+    setTemplates({ ...templates, [key]: templateEditValue });
+    setEditingTemplate(null);
+    setTemplateSaveMsg(`Template '${key}' saved!`);
+    setTimeout(() => setTemplateSaveMsg(''), 2500);
+  };
+
+  const resetTemplate = (key) => {
+    setTemplates({ ...templates, [key]: DEFAULT_TEMPLATES[key] });
+    if (editingTemplate === key) {
+      setTemplateEditValue(DEFAULT_TEMPLATES[key]);
+    }
+    setTemplateSaveMsg(`'${key}' reset to default.`);
+    setTimeout(() => setTemplateSaveMsg(''), 2500);
+  };
+
+  const resetAllTemplates = () => {
+    setTemplates({ ...DEFAULT_TEMPLATES });
+    setEditingTemplate(null);
+    setTemplateSaveMsg('All templates reset to defaults.');
+    setTimeout(() => setTemplateSaveMsg(''), 2500);
+  };
+
+  const templateLabels = {
+    bookingConfirmation: 'Booking Confirmation',
+    returnReminder: 'Return Reminder',
+    overdueAlert: 'Overdue Alert',
+    paymentConfirmation: 'Payment Confirmation',
+  };
+
+  const availablePlaceholders = `{customerName}, {itemName}, {rentalDate}, {returnDate}, {qrCode}, {downpaymentAmount}, {balanceAmount}`;
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-3xl">
       <div>
@@ -38,7 +95,7 @@ export default function ProfileSettingsView({
         <p className="text-gray-500 font-medium mt-1">Manage your preferences and security.</p>
       </div>
 
-      {/* Profile card */}
+      {/* Profile card (unchanged) */}
       <div className="bg-white rounded-3xl border border-gray-100/80 shadow-sm p-6 md:p-8 flex flex-col md:flex-row gap-8 items-start">
         <div className="w-24 h-24 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 border-4 border-white shadow-lg flex items-center justify-center shrink-0 text-gray-400">
           <User size={40} />
@@ -53,7 +110,6 @@ export default function ProfileSettingsView({
             </span>
           </div>
 
-          {/* Editable fields for Customer, static for Admin/Staff */}
           {role === 'Customer' ? (
             editCustomer ? (
               <div className="space-y-3">
@@ -111,7 +167,6 @@ export default function ProfileSettingsView({
               </div>
             )
           ) : (
-            // Admin/Staff – static info
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-100/80">
               <div>
                 <label className="text-[10px] font-bold text-gray-400 uppercase">Email Address</label>
@@ -126,7 +181,7 @@ export default function ProfileSettingsView({
         </div>
       </div>
 
-      {/* System Integrations (Admin & Staff only) */}
+      {/* System Integrations (Admin & Staff) */}
       {role !== 'Customer' && (
         <div className="bg-white rounded-3xl border border-gray-100/80 shadow-sm p-6 md:p-8 space-y-6">
           <h3 className="font-bold text-gray-900 flex items-center gap-2">
@@ -148,6 +203,48 @@ export default function ProfileSettingsView({
               <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full">Active</span>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* SMS Templates – Admin only */}
+      {role === 'Admin' && (
+        <div className="bg-white rounded-3xl border border-gray-100/80 shadow-sm p-6 md:p-8 space-y-6">
+          <h3 className="font-bold text-gray-900 flex items-center gap-2">
+            <MessageSquare size={20} className="text-[#bf4a53]" /> SMS Templates
+          </h3>
+          <p className="text-sm text-gray-500">Customize the SMS messages sent to customers. Use placeholders like {`{customerName}`}, {`{itemName}`}, etc. They will be replaced automatically.</p>
+          <div className="text-xs text-gray-400 bg-gray-50 p-3 rounded-xl">
+            Available placeholders: {availablePlaceholders}
+          </div>
+          {Object.keys(templates).map((key) => (
+            <div key={key} className="border border-gray-200 rounded-2xl p-5">
+              <div className="flex justify-between items-center mb-3">
+                <h4 className="text-sm font-bold text-gray-900">{templateLabels[key]}</h4>
+                <div className="flex gap-2">
+                  {editingTemplate === key ? (
+                    <>
+                      <button onClick={cancelEditTemplate} className="text-xs font-semibold text-gray-500 hover:underline">Cancel</button>
+                      <button onClick={() => saveTemplate(key)} className="text-xs font-semibold text-[#bf4a53] hover:underline">Save</button>
+                    </>
+                  ) : (
+                    <button onClick={() => startEditTemplate(key)} className="text-xs font-semibold text-[#bf4a53] hover:underline">Edit</button>
+                  )}
+                  <button onClick={() => resetTemplate(key)} className="text-xs font-semibold text-gray-400 hover:text-gray-600">Reset</button>
+                </div>
+              </div>
+              {editingTemplate === key ? (
+                <textarea
+                  value={templateEditValue}
+                  onChange={(e) => setTemplateEditValue(e.target.value)}
+                  className="w-full p-3 bg-gray-50 rounded-xl border text-sm min-h-[100px] focus:outline-none focus:border-[#bf4a53]"
+                />
+              ) : (
+                <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-xl whitespace-pre-wrap">{templates[key]}</p>
+              )}
+            </div>
+          ))}
+          <button onClick={resetAllTemplates} className="text-sm font-bold text-red-500 hover:underline">Reset all templates to defaults</button>
+          {templateSaveMsg && <p className="text-xs text-emerald-600 font-bold mt-2">{templateSaveMsg}</p>}
         </div>
       )}
 
@@ -209,7 +306,7 @@ export default function ProfileSettingsView({
         </div>
       )}
 
-      {/* Sign Out Section */}
+      {/* Sign Out */}
       <div className="bg-white rounded-3xl border border-gray-100/80 shadow-sm p-6 md:p-8">
         <h3 className="font-bold text-gray-900 text-lg mb-2">Account Actions</h3>
         <p className="text-sm text-gray-500 mb-4">
