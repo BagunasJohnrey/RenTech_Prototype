@@ -9,7 +9,7 @@ export default function Sidebar({ role, setRole, activeTab, setActiveTab, navIte
       {/* Top area: profile picture + name */}
       <div className="p-8 flex items-center gap-3 border-b border-gray-100/50">
         <img
-          src="public/RenTech.png"
+          src="/RenTech.png"
           alt="Profile"
           className="w-10 h-10 rounded-full object-cover border-2 border-gray-200 flex-shrink-0"
         />
@@ -69,7 +69,7 @@ export default function Sidebar({ role, setRole, activeTab, setActiveTab, navIte
         {role !== 'Customer' && (
           <div className="flex items-center gap-3 px-4 py-3 bg-gray-50/50 rounded-2xl">
             <img
-              src="public/RenTech.png"
+              src="/RenTech.png"
               alt={role}
               className="w-8 h-8 rounded-full object-cover border border-gray-200"
             />
