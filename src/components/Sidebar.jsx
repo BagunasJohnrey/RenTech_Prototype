@@ -1,20 +1,27 @@
 import { LogOut } from 'lucide-react';
 
-export default function Sidebar({ role, setRole, activeTab, setActiveTab, navItems, onRequestLogout }) {
+export default function Sidebar({ role, setRole, activeTab, setActiveTab, navItems, onRequestLogout, customerName }) {
+  // Determine display name
+  const displayName = role === 'Customer' ? (customerName || 'Customer') : role;
+
   return (
     <aside className="hidden md:flex flex-col w-64 bg-white/80 backdrop-blur-xl border-r border-gray-100/50 sticky top-0 h-screen z-20">
-      <div className="p-8 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-gradient-to-br from-[#bf4a53] to-red-700 rounded-xl flex items-center justify-center text-white font-black tracking-tighter shadow-sm shadow-red-500/20">
-            RT
-          </div>
-          <h1 className="font-bold text-xl tracking-tight text-gray-900">RENTECH</h1>
+      {/* Top area: profile picture + name */}
+      <div className="p-8 flex items-center gap-3 border-b border-gray-100/50">
+        <img
+          src="public/RenTech.png"
+          alt="Profile"
+          className="w-10 h-10 rounded-full object-cover border-2 border-gray-200 flex-shrink-0"
+        />
+        <div className="min-w-0">
+          <h1 className="font-bold text-sm tracking-tight text-gray-900 truncate">{displayName}</h1>
+          <p className="text-[10px] text-gray-500">{role}</p>
         </div>
       </div>
 
       {/* Role switcher – only for Admin */}
       {role === 'Admin' && (
-        <div className="px-6 pb-6 border-b border-gray-100/50 mb-4">
+        <div className="px-6 pb-6 mt-4 border-b border-gray-100/50 mb-4">
           <select
             value={role}
             onChange={(e) => setRole(e.target.value)}
@@ -27,7 +34,7 @@ export default function Sidebar({ role, setRole, activeTab, setActiveTab, navIte
         </div>
       )}
 
-      <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto hide-scrollbar">
+      <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto hide-scrollbar mt-4">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive =
@@ -58,7 +65,7 @@ export default function Sidebar({ role, setRole, activeTab, setActiveTab, navIte
 
       {/* User info & actions */}
       <div className="p-6 space-y-4">
-        {/* Profile area (Admin/Staff only) */}
+        {/* Profile area (Admin/Staff only) – duplicate of top but with online dot */}
         {role !== 'Customer' && (
           <div className="flex items-center gap-3 px-4 py-3 bg-gray-50/50 rounded-2xl">
             <img

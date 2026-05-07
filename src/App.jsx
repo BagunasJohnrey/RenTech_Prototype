@@ -184,27 +184,34 @@ export default function RentechApp() {
           setActiveTab={setActiveTab}
           navItems={currentNav}
           onRequestLogout={() => setShowLogoutModal(true)} // Opens the global modal
+          customerName={customerInfo.name}
         />
 
         <main className="grow flex flex-col h-screen overflow-y-auto relative custom-scrollbar pb-24 md:pb-0">
         <header className="sticky top-0 bg-white/70 backdrop-blur-xl border-b border-gray-100/50 px-5 md:px-10 py-4 flex items-center justify-between z-20">
-          <div className="flex items-center gap-2 md:hidden">
-            <div className="w-8 h-8 bg-gradient-to-br from-[#bf4a53] to-red-700 rounded-xl flex items-center justify-center text-white font-black text-sm shadow-sm shadow-red-500/20">RT</div>
-            {/* Mobile role switcher – only for Admin */}
-            {role === 'Admin' ? (
-              <select
-                value={role}
-                onChange={(e) => handleRoleChange(e.target.value)}
-                className="text-sm font-bold text-gray-800 bg-transparent border-0 py-0 pl-1 pr-6 focus:ring-0 outline-none"
-              >
-                <option value="Admin">Admin</option>
-                <option value="Staff">Staff</option>
-                <option value="Customer">Customer</option>
-              </select>
-            ) : (
-              <span className="text-sm font-bold text-gray-800">{role} Portal</span>
-            )}
-          </div>
+        <div className="flex items-center gap-2 md:hidden">
+          <img
+            src="public/RenTech.png"
+            alt="Profile"
+            className="w-8 h-8 rounded-full object-cover border border-gray-200"
+          />
+          {/* Mobile role / name display */}
+          {role === 'Admin' ? (
+            <select
+              value={role}
+              onChange={(e) => handleRoleChange(e.target.value)}
+              className="text-sm font-bold text-gray-800 bg-transparent border-0 py-0 pl-1 pr-6 focus:ring-0 outline-none"
+            >
+              <option value="Admin">Admin</option>
+              <option value="Staff">Staff</option>
+              <option value="Customer">Customer</option>
+            </select>
+          ) : (
+            <span className="text-sm font-bold text-gray-800 truncate max-w-[120px]">
+              {role === 'Customer' ? (customerInfo?.name || 'Customer') : role}
+            </span>
+          )}
+        </div>
 
           <div className="hidden md:block">
             <h2 className="text-sm font-bold text-gray-800">{role} Portal</h2>
