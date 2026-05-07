@@ -79,7 +79,7 @@ export default function Login({ onLogin, onBack }) {
 
         <div className="flex justify-center mb-6">
           <img 
-                src="public/RenTech.png" 
+                src="/RenTech.png" 
                 alt="RENTECH Logo" 
                 className="w-16 h-16 md:w-16 md:h-16"
               />

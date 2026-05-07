@@ -174,7 +174,7 @@ export default function LandingPage({ onLogin }) {   // <-- only onLogin now
           <nav className="max-w-7xl mx-auto px-4 sm:px-6 py-3 md:py-4 flex justify-between items-center">
             <div className="text-xl md:text-2xl font-extrabold tracking-tighter flex items-center gap-2 text-gray-950">
               <img 
-                src="public/RenTech.png" 
+                src="/RenTech.png" 
                 alt="RENTECH Logo" 
                 className="w-8 h-8 md:w-9 md:h-9 object-contain rounded-xl"
               />
@@ -349,7 +349,7 @@ export default function LandingPage({ onLogin }) {   // <-- only onLogin now
             <div className="text-center md:text-left">
                <div className="text-xl md:text-2xl font-extrabold tracking-tighter flex items-center justify-center md:justify-start gap-2 text-gray-950 mb-2">
                   <img 
-                    src="public/RenTech.png" 
+                    src="/RenTech.png" 
                     alt="RENTECH Logo" 
                     className="w-7 h-7 md:w-8 md:h-8 object-contain rounded-lg"
                   />
